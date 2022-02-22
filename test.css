@@ -1,5 +1,5 @@
 :root {
-  --canvas-height: 750px;
+  --canvas-height: 690px;
   --swatch-width: 80px;
   --canvas-width: calc(6 * var(--swatch-width));
   --grey1: #2f3136;
@@ -11,6 +11,10 @@
 
 body {
   background-color: var(--grey1);
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }
 
 .main_container {
@@ -26,13 +30,17 @@ body {
 .right_container {
   display:block;
   margin-left: 20px;
-  width: 700px;
+  width: 580px;
 }
 
 .canvas_container {
   height: var(--canvas-height);
   width: var(--canvas-width);
   background-color: var(--grey2);
+  margin-top: 20px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  overflow: hidden;
 }
 
 canvas {
@@ -44,6 +52,8 @@ canvas {
   display: grid;
   grid-template-columns: repeat(6, var(--swatch-width));
   grid-template-rows: repeat(2, var(--swatch-width));
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .panton_border {
@@ -76,6 +86,10 @@ canvas {
 }
 
 .button_container {
+  display: flex;
+}
+
+.button {
   width: auto;
   height: 50px;
   line-height: 50px;
@@ -83,10 +97,10 @@ canvas {
   background-color: var(--grey2);
   color: var(--grey4);
   border: 3px solid var(--grey4);
-  border-radius: 2px;
+  border-radius: 10px;
 }
 
-.button_container:hover {
+.button:hover {
   background-color: var(--grey3);
 }
 
@@ -94,26 +108,39 @@ canvas {
   display: flex;
   margin-top: 20px;
   width: auto;
-  height: 838px;
+  height: 850px;
   color: var(--grey4);
   text-align: center;
 }
 
 .solution {
   margin-right: 20px;
-  width: 83px;
+  width: 80px;
   height: inherit;
   background-color: var(--grey2);
   text-align: center;
   font-size: 30px;
   display: block;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.solution_heading {
+  width: 100%;
+  height: 32px;
+  font-size: 24px;
+  line-height: 32px;
+  text-align: center;
+  background-color: var(--grey4);
+  color: var(--grey1);
+  margin-bottom: 10px;
 }
 
 .solution_line {
   width: 100%;
-  height: 36px;
-  font-size: 30px;
-  line-height: 36px;
+  height: 32px;
+  font-size: 28px;
+  line-height: 32px;
   text-align: center;  
 }
 
@@ -126,7 +153,7 @@ canvas {
   margin: auto;
   width: 80px;
   height: 80px;
-  top: 379px;
+  top: 369px;
 }
 .lds-default div {
   position: absolute;
@@ -203,32 +230,28 @@ canvas {
   }
 }
 
-.red div {
-  background: red;
-}
-
-.darkorange div {
-  background: darkorange;
-}
-
-.yellow div {
-  background: yellow;
-}
-
-.limegreen div {
-  background: limegreen;
-}
-
-.royalblue div {
-  background: royalblue;
+.white div {
+  background: #fff;
 }
 
 .mediumorchid  div {
   background: mediumorchid;
 }
 
-.white div {
-  background: #fff;
+.darkorange div {
+  background: darkorange;
+}
+
+.red div {
+  background: red;
+}
+
+.darkgreen div {
+  background: darkgreen;
+}
+
+.lightskyblue div {
+  background: lightskyblue;
 }
 
 .animtation_class div {

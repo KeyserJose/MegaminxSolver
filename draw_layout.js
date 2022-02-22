@@ -2,7 +2,7 @@ const a = 24;                                           //distance from centre t
 const gap = 0.2 * a;                                    //gap between tiles
 const b = 1.2 * a;                                      //height of trapezium tile
 
-const origin = [205, 200];                              //origin of white face
+const origin = [205, 175];                              //origin of white face
 
 var c = 4 * a / (Math.sqrt(5) + 1);                     //distance from centre to corner for pentagon tile
 var d = a * Math.tan(Math.PI * 36 / 180);               //half length of side of pentagon tile
@@ -67,7 +67,7 @@ var elements = [];
 
 function init() {
 
-    document.getElementById("canvas_container").innerHTML = "<canvas id='demoCanvas' width='480' height='750'></canvas>"
+    document.getElementById("canvas_container").innerHTML = "<canvas id='demoCanvas' width='480' height='690'></canvas>"
     
     stage = new createjs.Stage("demoCanvas");
 
@@ -108,7 +108,7 @@ function init() {
 function drawSide(container, color) {
 
     var pent = new createjs.Shape();
-    pent.graphics.beginStroke('#36393f').beginFill(color).moveTo(pentagon[0], pentagon[1]);
+    pent.graphics.beginStroke('#36393f').setStrokeStyle(1).beginFill(color).moveTo(pentagon[0], pentagon[1]);
     for (var i = 2; i < 10; i += 2) {
         pent.graphics.lineTo(pentagon[i], pentagon[i+1]);
     }

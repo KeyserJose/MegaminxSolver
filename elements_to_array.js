@@ -57,6 +57,53 @@ const edge_list = [
 let megaminx;
 let all_megaminxes = [];
 
+function resetPuzzle(scramble) {
+
+    //remove previous solution
+    for (var i = 0; i < 6; i++) {
+        let panel = document.getElementById('solution' + i.toString());
+        panel.innerHTML = '<div class="solution_heading">' + (i + 1).toString() + '</div>';
+    }
+
+    //remove error lines on canvas
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].graphics._stroke.style = '#36393f';
+        elements[i].graphics._oldStrokeStyle.width = 1;
+    }
+
+    all_megaminxes = [];
+    corner_pos_array = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    corner_rot_array = new Array(20).fill(0);
+    edge_pos_array = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+    edge_rot_array = new Array(30).fill(0);
+
+    if (scramble) {
+
+        //apply 100 random moves
+        for (var i = 0; i < 100; i++) {
+
+            let face =  Math.floor(12 * Math.random());
+            let turns = Math.floor(4 * Math.random());
+            for (var j = 0; j < turns + 1; j++) {
+                corner_pos_array = apply_move_corner_pos(corner_pos_array, face);
+                corner_rot_array = apply_move_corner_rot(corner_rot_array, face);
+                edge_pos_array = apply_move_edge_pos(edge_pos_array, face);
+                edge_rot_array = apply_move_edge_rot(edge_rot_array, face);
+            }
+    
+        }
+    }
+
+    arrays_to_elements();
+    for (var i = 0; i < 132; i++) {
+        elements[i].graphics._fill.style = html_colors[all_megaminxes[0][i]];
+    }
+    stage.update();
+
+    document.getElementById("solve_button").innerText = "Solve";
+
+}
+
 function getArrays() {
 
     corner_pos_array = [];
@@ -69,15 +116,7 @@ function getArrays() {
         megaminx[i] = html_colors.indexOf(elements[i].graphics._fill.style);
     }
 
-    //megaminx = [0,1,1,8,8,7,0,6,6,1,10,1,7,6,0,4,11,11,3,8,5,7,2,10,1,8,10,0,1,1,5,0,5,3,2,4,8,5,6,4,2,10,11,3,4,2,2,9,3,7,8,9,4,9,0,5,5,10,0,2,10,4,9,8,7,9,6,7,4,10,4,6,3,11,3,5,2,7,5,9,1,3,7,11,9,1,2,11,8,5,5,2,9,11,10,8,10,1,2,9,3,8,11,1,3,4,5,8,7,6,10,3,11,4,11,9,0,3,6,7,2,11,9,0,6,6,0,6,10,0,7,4];
-    megaminx = [0,10,5,3,9,4,2,9,2,9,7,1,6,5,9,7,10,3,8,4,7,1,2,6,3,2,6,3,5,8,1,10,9,3,4,11,3,1,8,11,4,1,4,6,4,2,0,1,7,2,0,6,6,11,3,5,8,8,0,11,10,3,2,10,1,10,6,0,0,7,11,7,8,11,4,4,10,7,2,10,6,9,1,3,10,2,0,3,8,4,10,0,11,5,5,5,0,8,9,9,2,11,1,5,8,5,8,9,11,0,10,3,9,9,4,1,7,11,1,7,6,11,6,7,8,4,5,6,7,2,0,5];
-
-    for (var i = 0; i < 132; i++) {
-        elements[i].graphics._fill.style = html_colors[megaminx[i]];
-    }
-    stage.update();
-
-    all_megaminxes.push(megaminx);
+    all_megaminxes = [megaminx];
 
     for (var i = 0; i < corner_list.length; i++) {
         let idx = 144 * megaminx[corner_list[i][0]] + 12 * megaminx[corner_list[i][1]] + megaminx[corner_list[i][2]];
@@ -92,18 +131,18 @@ function getArrays() {
     }
 
     if (!checkValidity(corner_pos_array, corner_list) || !checkValidity(edge_pos_array, edge_list)) {
-        document.getElementById('solve_button').innerText = 'Invalid pattern detected!';
+        document.getElementById('solve_button').innerText = 'Invalid pattern detected! Please correct.';
         return
     }
     if (!checkMultiples(corner_pos_array, corner_list) || !checkMultiples(edge_pos_array, edge_list)) {
-        document.getElementById('solve_button').innerText = 'Invalid pattern detected!';
+        document.getElementById('solve_button').innerText = 'Invalid pattern detected! Please correct.';
         return
     }
 
-    //console.log(corner_pos_array);
-    //console.log(corner_rot_array);
-    //console.log(edge_pos_array);
-    //console.log(edge_rot_array);
+    if ( !checkParity(corner_rot_array, edge_rot_array) ) {
+        document.getElementById('solve_button').innerText = 'Invalid parity detected! Please correct.';
+        return
+    }
 
     createLoadAnimations();
 }
@@ -123,7 +162,7 @@ function checkMultiples(arr1, arr2) {
             for (var j = 0; j < arr1.length; j++) {
                 if (arr1[j] === i) {
                     for (var k = 0; k < arr2[j].length; k++) {
-                        elements[arr2[j][k]].graphics._stroke.style = 'orange';
+                        elements[arr2[j][k]].graphics._stroke.style = '#FFBF00';
                         elements[arr2[j][k]].graphics._oldStrokeStyle.width = 3;
                     }
                 }
@@ -144,7 +183,7 @@ function checkValidity(arr1, arr2) {
         if (arr1[i] === -1) {
             valid = false;
             for (var j = 0; j < arr2[i].length; j++) {
-                elements[arr2[i][j]].graphics._stroke.style = '#FF5733';
+                elements[arr2[i][j]].graphics._stroke.style = '#800020';
                 elements[arr2[i][j]].graphics._oldStrokeStyle.width = 3;
             }
         } else {
@@ -159,6 +198,32 @@ function checkValidity(arr1, arr2) {
     return valid
 
 }
+
+function checkParity(arr1, arr2) {
+
+    //no way of identifying the offending puzzle piece so just return a validity status...
+    let valid = true;
+
+    let sum = 0;
+    for (var i = 0; i < arr1.length; i++) {
+        sum += arr1[i];
+    }
+    if (sum % 3 !== 0) {
+        valid = false;
+    }
+
+    sum = 0;
+    for (var i = 0; i < arr2.length; i++) {
+        sum += arr2[i];
+    }
+    if (sum % 2 !== 0) {
+        valid = false;
+    }
+    
+    return valid
+
+}
+
 
 function arrays_to_elements() {
 
@@ -199,4 +264,146 @@ function arrays_to_elements() {
     }
 
     all_megaminxes.push(new_megaminx);
+}
+
+function apply_move_corner_pos(arr, move) {
+
+    let pos_table = [
+        [4,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],    //W
+        [0,1,3,7,4,2,5,6,8,9,10,11,12,13,14,15,16,17,18,19],    //A
+        [0,2,5,3,4,9,6,7,1,8,10,11,12,13,14,15,16,17,18,19],    //F
+        [0,1,2,4,11,5,6,3,8,9,7,10,12,13,14,15,16,17,18,19],    //L
+        [13,1,2,3,0,5,6,7,8,9,10,4,11,12,14,15,16,17,18,19],    //O
+        [1,8,2,3,4,5,6,7,14,9,10,11,12,0,13,15,16,17,18,19],    //R
+        [0,1,2,3,4,6,15,7,8,5,10,11,12,13,14,16,9,17,18,19],    //Y
+        [0,1,2,3,4,5,6,7,9,16,10,11,12,13,8,15,17,14,18,19],    //I
+        [0,1,2,3,4,5,6,7,8,9,10,11,13,14,17,15,16,18,12,19],    //B
+        [0,1,2,3,4,5,6,7,8,9,11,12,18,13,14,15,16,17,19,10],    //G
+        [0,1,2,3,4,5,7,10,8,9,19,11,12,13,14,6,16,17,18,15],    //P
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,19,15,16,17,18]     //S
+    ];
+
+    let new_arr = new Array(arr.length);
+
+    for (var i = 0; i < arr.length; i++) {
+         new_arr[i] = arr[pos_table[move][i]];
+    }
+ 
+    return new_arr
+
+}
+
+function apply_move_corner_rot(arr, move) {
+
+    let pos_table = [
+        [4,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],    //W
+        [0,1,3,7,4,2,5,6,8,9,10,11,12,13,14,15,16,17,18,19],    //A
+        [0,2,5,3,4,9,6,7,1,8,10,11,12,13,14,15,16,17,18,19],    //F
+        [0,1,2,4,11,5,6,3,8,9,7,10,12,13,14,15,16,17,18,19],    //L
+        [13,1,2,3,0,5,6,7,8,9,10,4,11,12,14,15,16,17,18,19],    //O
+        [1,8,2,3,4,5,6,7,14,9,10,11,12,0,13,15,16,17,18,19],    //R
+        [0,1,2,3,4,6,15,7,8,5,10,11,12,13,14,16,9,17,18,19],    //Y
+        [0,1,2,3,4,5,6,7,9,16,10,11,12,13,8,15,17,14,18,19],    //I
+        [0,1,2,3,4,5,6,7,8,9,10,11,13,14,17,15,16,18,12,19],    //B
+        [0,1,2,3,4,5,6,7,8,9,11,12,18,13,14,15,16,17,19,10],    //G
+        [0,1,2,3,4,5,7,10,8,9,19,11,12,13,14,6,16,17,18,15],    //P
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,19,15,16,17,18]     //S
+    ];
+
+     const rot_table = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],   //W
+        [0, 0, 1, 2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],   //A
+        [0, 1, 2, 0, 0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],   //F
+        [0, 0, 0, 1, 2, 0, 0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],   //L
+        [2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0],   //O
+        [1, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0],   //R
+        [0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0],   //Y
+        [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 1, 2, 0, 0],   //I
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 1, 2, 0],   //B
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 1, 2],   //G
+        [0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 1],   //P
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]    //S
+    ];
+
+    var new_arr = new Array(arr.length);
+
+    for (var i = 0; i < arr.length; i++) {
+        new_arr[i] = arr[pos_table[move][i]];
+        new_arr[i] += rot_table[move][i];
+        new_arr[i] %= 3;
+    }
+
+    return new_arr;
+
+}
+
+function apply_move_edge_pos(arr, move) {
+
+    const pos_table = [
+        [4,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //W
+        [0,1,8,3,4,2,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //A
+        [0,5,2,3,4,11,6,7,8,1,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //F
+        [0,1,2,14,4,5,6,7,3,9,10,11,8,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //L
+        [0,1,2,3,17,5,6,7,8,9,10,11,12,13,4,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29],  //O
+        [9,1,2,3,4,5,6,7,8,19,10,11,12,13,14,15,16,0,17,18,20,21,22,23,24,25,26,27,28,29],  //R
+        [0,1,2,3,4,5,20,7,8,9,10,6,12,13,14,15,16,17,18,19,21,22,11,23,24,25,26,27,28,29],  //Y
+        [0,1,2,3,4,5,6,7,8,9,22,11,12,13,14,15,16,17,18,10,20,21,23,24,19,25,26,27,28,29],  //I
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,18,17,24,19,20,21,22,23,25,26,16,27,28,29],  //B
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,15,14,26,16,17,18,19,20,21,22,23,24,25,27,28,13,29],  //G
+        [0,1,2,3,4,5,6,12,8,9,10,11,28,13,14,15,16,17,18,19,7,21,22,23,24,25,26,27,29,20],  //P
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,29,22,21,24,23,26,25,28,27]   //S
+    ];
+
+    var new_arr = new Array(arr.length);
+
+    for (var i = 0; i < arr.length; i++) {
+        new_arr[i] = arr[pos_table[move][i]];
+    }
+
+    return new_arr;
+
+}
+
+function apply_move_edge_rot(arr, move) {
+
+    const pos_table = [
+        [4,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //W
+        [0,1,8,3,4,2,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //A
+        [0,5,2,3,4,11,6,7,8,1,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //F
+        [0,1,2,14,4,5,6,7,3,9,10,11,8,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],  //L
+        [0,1,2,3,17,5,6,7,8,9,10,11,12,13,4,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29],  //O
+        [9,1,2,3,4,5,6,7,8,19,10,11,12,13,14,15,16,0,17,18,20,21,22,23,24,25,26,27,28,29],  //R
+        [0,1,2,3,4,5,20,7,8,9,10,6,12,13,14,15,16,17,18,19,21,22,11,23,24,25,26,27,28,29],  //Y
+        [0,1,2,3,4,5,6,7,8,9,22,11,12,13,14,15,16,17,18,10,20,21,23,24,19,25,26,27,28,29],  //I
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,18,17,24,19,20,21,22,23,25,26,16,27,28,29],  //B
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,15,14,26,16,17,18,19,20,21,22,23,24,25,27,28,13,29],  //G
+        [0,1,2,3,4,5,6,12,8,9,10,11,28,13,14,15,16,17,18,19,7,21,22,23,24,25,26,27,29,20],  //P
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,29,22,21,24,23,26,25,28,27]   //S
+    ];
+
+    const rot_table = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //W
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //A
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //F
+        [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //L
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //O
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     //R
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],     //Y
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],     //I
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],     //B
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],     //G
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],    //P
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]     //S
+    ];
+
+    var new_arr = new Array(arr.length);
+
+    for (var i = 0; i < arr.length; i++) {
+        new_arr[i] = arr[pos_table[move][i]];
+        new_arr[i] += rot_table[move][i];
+        new_arr[i] %= 2;
+    }
+
+    return new_arr;
+
 }
